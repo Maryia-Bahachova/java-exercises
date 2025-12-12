@@ -2,16 +2,13 @@
 
 ## Task Description
 
-The goal of this lab was to implement an **Order Processor** system in Java.  
-The system should handle:
+The goal was to improve the code structure, readability, and maintainability while keeping the core functionality intact.
 
-- Customer orders
-- Product management
-- Discount application
-- Payment processing
-- Logging of orders
+## Notes
 
-The main idea was to practice **object-oriented programming** in Java, including classes, methods, packages, and basic design patterns.
+- Each folder represents a Java package  
+- Demonstrates understanding of OOP principles, package organization, and design best practices  
+- `OrderProcessor.java` is the **original source file** that was refactored
 
 ## Implementation
 
@@ -25,23 +22,16 @@ The project includes several packages:
 
 ### Key Features
 
-- Modular structure using Java packages
-- Classes for different responsibilities (OrderProcessor, PaymentService, DiscountService, etc.)
-- Logging and handling of orders
+- Refactored `OrderProcessor.java` for clarity and maintainability  
+- Modular structure using Java packages  
+- Classes for different responsibilities (PaymentService, DiscountService, etc.)  
+- Logging and handling of orders  
 - Unit tests for verification
 
 ## Result
 
 After completing this lab:
 
-- The Order Processor system is implemented according to the requirements
-- All core functionalities are working
-- The code is organized into logical packages
-- Unit tests verify main functionalities
-
-## Notes
-
-- Each folder represents a Java package  
-- The structure allows easy extension and maintenance
-- Demonstrates understanding of OOP principles, package organization, and basic design patterns
-- The file `OrderProcessor.java` is the **original source file** for the lab
+- The Order Processor system is refactored according to **clean code** and **SOLID** principles  
+- All core functionalities are preserved and tested  
+- The code is organized into logical packages for easy extension and maintenance
