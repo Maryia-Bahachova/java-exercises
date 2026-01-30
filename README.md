@@ -1,217 +1,286 @@
 # ☕ Coffee Machine Middleware
 
-Design Patterns Showcase Project  
-Language: Java
+## 🎯 Goal
+Design and implement a **middleware** between the `OrderDesk` (front-end) and the `CoffeeMachine` interface.  
+The middleware must translate orders into commands for the coffee machine.
 
 ---
 
-## 📌 Overview
+## 🧠 Task Description
 
-This project implements a middleware layer between an **OrderDesk** (front-end)
-and a **CoffeeMachine** interface.
+Implement a middleware layer (the `CoffeeMachineController`) that connects the `OrderDesk` and the `CoffeeMachine`.
 
-The goal is to demonstrate how classic **design patterns** can be combined
-to build a flexible, extensible, and maintainable system that simulates
-real-world device integration.
+1. The controller must **interpret each drink** name and send the correct preparation command to the coffee machine.
 
----
+2. The configuration for each coffee type (e.g. espresso, latte, cappuccino) should not be hard-coded directly in the controller.
 
-## 🎯 Project Goals
+3. Use **creational design patterns** to build a flexible and extensible design.
 
-The middleware is responsible for:
+4. Each coffee type should define:
 
-- parsing textual coffee orders
-- building region-specific coffee recipes
-- supporting toppings and discounts
-- controlling communication with a coffee machine
-- processing orders through a clear pipeline
-- reacting to order events without tight coupling
+   - Amount of **water (ml)**
 
-Backward compatibility with the old connector is fully preserved.
+   - Amount of **coffee (g)**
 
----
+    - Amount of **milk (ml)**
 
-## 🧱 Architecture
-
+5. Send command to the machine in the format:
 ```
-OrderDesk
-   ↓
-Order Processing Pipeline
-   ↓
-CoffeeMachineController
-   ↓
-CoffeeMachineConnector (Old / New)
-   ↓
-Coffee Machine
+"<water>ml <coffee>g <milk>ml"
 ```
+6. Each region-specific factory must return versions of coffee with **region-dependent ingredient values** (e.g. Italian espresso = *stronger*, French cappuccino = *milkier*, etc.).
+
+7. 🌍 Regional Recipe Table:
+
+| Region             | Espresso (W/C/M) | Cappuccino (W/C/M)  | Latte (W/C/M)       | Notes                |
+| ------------------ | ---------------- | ------------------- | ------------------- | -------------------- |
+| **Italy** 🇮🇹     | 50ml / 18g / 0ml | 200ml / 15g / 100ml | 250ml / 15g / 200ml | Strong & classic     |
+| **Lithuania** 🇱🇹 | 60ml / 16g / 0ml | 200ml / 15g / 120ml | 240ml / 15g / 220ml | Balanced flavor      |
 
 ---
 
-## ☕ Supported Coffee Types
+## 📝 New task for structural design patterns
 
-Each coffee defines:
-
-- Water (ml)
-- Coffee (g)
-- Milk (ml)
-
-Command format sent to the machine:
-
-```
-<water>ml <coffee>g <milk>ml [toppings]
-```
-
----
-
-## 🌍 Regional Recipes (Abstract Factory)
-
-| Region | Espresso | Cappuccino | Latte | Notes |
-|------|---------|------------|-------|------|
-| Italy 🇮🇹 | 50ml / 18g / 0ml | 200ml / 15g / 100ml | 250ml / 15g / 200ml | Strong & classic |
-| Lithuania 🇱🇹 | 60ml / 16g / 0ml | 200ml / 15g / 120ml | 240ml / 15g / 220ml | Balanced flavor |
-
-Region-specific factories create coffee objects with different ingredient values.
-
----
-
-## 🧁 Toppings Support (Decorator Pattern)
-
-Supported toppings:
-
-- Caramel — €0.50
-- Cream — €0.40
-- Liquor — €0.80
-
-Features:
-
-- toppings can be combined
-- each topping affects price and machine command
-- base coffee classes remain unchanged
-
-Example order:
-
+### ✔ 1. Add Toppings Support
+Extend the coffee order logic so a user can request toppings, for example:
 ```
 latte cream caramel
 ```
+The list of toppings:
+ - **Caramel**
+ - **Cream**
+ - **Liquor**
+
+Toppings can be combined
+
+### ✔ 2. Maintain Backward Compatibility
+
+Old connector: must still work exactly as before and support topping functionality
+
+New connector: must fully support toppings
+
+Your implementation must ensure the system can work with either connector without breaking existing functionality.
+
+
+
+### ✔ 3. ☕ NewCoffeeMachineConnector – Overview
+
+`NewCoffeeMachineConnector` is a connector class that simulates communication with a coffee machine device.
+It implements the `CoffeeMachineV75` interface and provides a controlled workflow for interacting with the machine.
+
+Typical lifecycle:
+```
+1. getToken()
+2. openSession(token)
+3. makeCoffee(token, session, "200ml 15g 80ml caramel")
+4. closeSession(token, session)
+```
+The connector supports the following operations:
+
+**Requesting a token** – retrieves a unique authentication token for connector.
+
+**Opening a session** – establishes a session using the provided token.
+
+**Preparing coffee** – performs a simulated coffee preparation within an active session.
+
+**Closing the session** – gracefully ends the active session.
+
+Additionally, the connector implements strict validation rules to ensure proper usage:
+
+Only one session can be open at any time
+
+This behavior mimics real-world external device integrations where authentication, session control, and state validation are required.
 
 ---
 
-## 🔌 Coffee Machine Connectors (Adapter Pattern)
+## 📝 New task for behavioral design patterns p.1
 
-### Old Connector
-- simple `makeCoffee(command)`
-- works exactly as before
-- fully compatible with new features
 
-### NewCoffeeMachineConnector
+### 🧠 Task – Order Price Calculation
+Extend the coffee ordering system to **calculate the final order price** dynamically, depending on:
 
-Lifecycle:
+- coffee type
+- region
+- applied discount rules
 
-```
-getToken()
-openSession(token)
-makeCoffee(token, session, "200ml 15g 80ml caramel")
-closeSession(token, session)
-```
+Use **stratagy** pattern
 
-Rules:
 
-- only one active session allowed
-- strict call order validation
-- simulates real external device integration
+#### ✔ Description
 
----
+Each coffee order must be able to calculate its **base price** and then apply **one discount strategy**.
 
-## 💶 Price Calculation (Strategy Pattern)
 
-### Base Coffee Prices
+#### ✔ Regional Coffee Price Table
 
-| Region | Espresso | Cappuccino | Latte |
-|------|---------|------------|-------|
-| Italy 🇮🇹 | €2.00 | €3.50 | €4.00 |
-| Lithuania 🇱🇹 | €1.80 | €3.20 | €3.80 |
+#### ☕ Base Coffee Prices (EUR)
 
-### Discount Strategies
+| Region             | Espresso | Cappuccino | Latte |
+|-------------------|----------|------------|-------|
+| **Italy** 🇮🇹     | €2.00    | €3.50      | €4.00 |
+| **Lithuania** 🇱🇹 | €1.80    | €3.20      | €3.80 |
 
-Only **one discount** may be applied per order:
 
-- None — no discount
-- Student 🎓 — 20% off
-- Loyalty Card 💳 — 10% off
+#### 🍯 Topping Prices (EUR)
 
-Example:
+| Topping  | Price |
+|---------|-------|
+| Caramel | €0.50 |
+| Cream   | €0.40 |
+| Liquor  | €0.80 |
+
+- Toppings can be combined
+- Each topping adds its price to the base coffee price
+
+#### ✔ Discount Strategies
+
+Only **one discount** may be applied per order.
+
+| Discount Type       | Rule |
+|---------------------|------|
+| **None**            | No discount |
+| **Student** 🎓      | 20% off total price |
+| **Loyalty Card** 💳 | 10% off total price |
+
+
+
+#### ✔ Example Usage
 
 ```
 student latte cream caramel
+
 none espresso
 ```
 
+### 🧠 Task – Order Processing Pipeline
+
+#### 🎯 Goal
+Refactor the order processing logic into a **step-by-step processing pipeline** where each step is responsible for **exactly one concern**.
+
+Use **Chain of Responsibility** pattern
+
+#### ✔ Description
+
+Processing a coffee order involves multiple sequential actions, such as (examples):
+
+- parsing the input string
+- identifying coffee type
+- applying toppings
+- applying discount rules
+
+### 🧠 Task – Coffee Machine Connector States
+
+### 🎯 Goal
+Enhance the `CoffeeMachineConnector` to behave differently depending on its **internal state**, simulating a real-world unstable external device.
+
+The connector must automatically switch between states based on **successes and failures** during operation.
+
+Use **state** pattern
+
+
+#### ✔ Description
+
+The coffee machine connector must operate in **three distinct states**:
+
+1. **OPEN**
+2. **CLOSED**
+3. **SEMI-CLOSED**
+
+Each state defines how the connector reacts to incoming coffee preparation requests.
+
+#### ✔ State Definitions & Rules
+
+##### 🟢 OPEN State
+- Normal operating mode
+- All requests are executed normally
+- If **2 exceptions occur processing**:
+   - the connector switches to **CLOSED** state
+
+##### 🔴 CLOSED State
+- Protective mode
+- The connector **ignores the next 5 incoming calls**
+- Ignored calls:
+   - must not reach the real coffee machine
+- After 5 ignored calls:
+   - the connector switches to **SEMI-CLOSED** state
+
+##### 🟡 SEMI-CLOSED State
+- Testing mode
+- The connector allows **exactly one request** to pass through
+- If the request:
+   - **succeeds** → switch to **OPEN**
+   - **fails** → switch back to **CLOSED**
+
 ---
+## 📝 New task for behavioral design patterns p.2
 
-## 🔗 Order Processing Pipeline (Chain of Responsibility)
+### 🧠 New Task – Order Events & Listeners (Observer Pattern)
+#### 🎯 Goal
 
-Order processing is divided into sequential steps:
+Extend the ordering system, so it can react to order completion events without changing the existing order processing logic.
 
-1. Parse input
-2. Identify coffee type
-3. Apply toppings
-4. Apply discount strategy
-5. Calculate final price
-6. Send command to coffee machine
+**Use the Observer (Listener) design pattern.**
 
-Each step has exactly **one responsibility**.
+#### 🧩 Core Idea
 
----
+When an order is successfully prepared, or fails during processing the system must notify registered listeners.
 
-## 🔄 Coffee Machine States (State Pattern)
+#### ✔ Required Listener Implementations
 
-The connector simulates unstable behavior using three states:
+##### 📚 1. OrderHistoryListener
 
-### OPEN
-- normal operation
-- after 2 failures → CLOSED
+Responsibility:
+Store the history of all processed orders. History must include both successful and failed orders.
 
-### CLOSED
-- ignores next 5 calls
-- calls do not reach the machine
-- switches to SEMI-CLOSED
+##### 🔔 2. NotificationListener
 
-### SEMI-CLOSED
-- allows exactly one request
-- success → OPEN
-- failure → CLOSED
+Responsibility:
+Simulate user notifications. Output to console is enough.
 
----
+## 🧠 Task – Order History Processing (Visitor Pattern)
 
-## 🔔 Order Events (Observer Pattern)
+### 🎯 Goal
+Extend the order history subsystem so that **multiple independent operations** can be performed on stored order history **without modifying the order or history classes**.
 
-The system emits events on order completion or failure.
+Use the **Visitor design pattern**.
 
-### Listeners
+### 🧩 Core Idea
 
-- **OrderHistoryListener**  
-  Stores all processed orders (successful and failed)
+The system already stores a list of processed orders in `OrderHistory`.
 
-- **NotificationListener**  
-  Outputs user notifications to the console
+New requirements appear:
+- calculate statistics
+- generate reports
 
----
+Instead of:
+- adding methods to `Order`
+- or adding `if` / `switch` logic in `OrderHistory`
 
-## 🧾 Order History Processing (Visitor Pattern)
+use the **Visitor pattern** to add new behaviors **without changing existing classes**.
 
-New behaviors are added without modifying order or history classes.
+### ✔ Required Visitor Implementations
+#### 📊 1. StatisticsVisitor
 
-### Visitors
+Responsibility:
 
-#### StatisticsVisitor
-- total orders
-- successful vs failed
-- discount usage
-- total revenue
-- average order price
+count total orders
 
-#### ReportVisitor
-- generates human-readable reports
+count successful vs failed orders
+
+Discounts usage
+
+Calculate total revenue
+
+Average order price
+
+Anything that seems interesting to you
+
+
+#### 📝 2. ReportVisitor
+
+Responsibility:
+
+generate a human-readable report from order history
 
 Example output:
 
@@ -220,23 +289,15 @@ Orders processed: 42
 Successful: 38
 Failed: 4
 
-Topping usage:
-Caramel: 12
-Cream: 4
-Liquor: 6
+Topping usage: 
+-- // -- : 12
+-- // -- : 4
 ```
 
----
+📌 Notes:
 
-## ✅ Quality Gate Status
+Output to console or string is sufficient
 
-✔ Clean architecture  
-✔ SOLID principles  
-✔ Backward compatibility  
-✔ Extensible design  
-✔ Real-world simulation  
-✔ Design patterns used correctly
 
----
 
-☕ Built for learning, clarity, and clean design.
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CodeAlchemyEhu_coffeeMachineConnector251&metric=alert_status&token=c777151405142a625e2412664d273fec07ff98c9)](https://sonarcloud.io/summary/new_code?id=CodeAlchemyEhu_coffeeMachineConnector251)
